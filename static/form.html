@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8"/>
-    </head>
-    <body>
-        <div>
-            <form method="post" action="/form">
-                <label>Name</label><input name="name" type="text" value=""/>
-                <!--<label>Address</label><input name="address" type="text" value="">>-->
-                <input type="submit" value="submit"/>
-            </form>
-        </div>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+</head>
+<body>
+    <div>
+        <form method="post" action="/form">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter your username" value="">
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter your password" value="">
+
+            <!--<label for="address">Address</label>
+            <input id="address" name="address" type="text" placeholder="Enter your address" value="">-->
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
 </html>

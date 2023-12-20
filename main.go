@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/h3th-IV/nest/databses"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,8 +20,14 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "POST request successful\n")
 	name := r.FormValue("name")
+	password := r.FormValue("password")
 
 	fmt.Fprintf(w, "Hello %v,\n Welcome to hello page", name)
+	dB, err := databses.InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dB.Query(`INSERT INTO users(name, password) VALUES($1, $2)`, name, password)
 }
 
 func main() {
