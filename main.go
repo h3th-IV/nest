@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/h3th-IV/nest/databses"
 )
@@ -11,6 +12,8 @@ import (
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to Our Home Page")
 }
+
+var conStr string = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disabale", os.Getenv("SQL_HOST"), os.Getenv("SQL_PORT"), os.Getenv("SQL_NAME"), os.Getenv("SQL_PASSWORD"), os.Getenv("SQL_DBNAME"))
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -23,7 +26,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	fmt.Fprintf(w, "Hello %v,\n Welcome to hello page", name)
-	dB, err := databses.InitDB()
+	dB, err := databses.InitDB(conStr)
 	if err != nil {
 		log.Fatal(err)
 	}
