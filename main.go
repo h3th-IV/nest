@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to Home Page")
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Welcome to Our Home Page")
 }
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,9 +47,9 @@ func main() {
 	mux := http.NewServeMux()
 
 	//the new mux is used to route requst
-	http.Handle("/", fileServer)
+	mux.Handle("/", fileServer)
 	mux.HandleFunc("/form", formHandler)
-	mux.HandleFunc("/", homeHandler)
+	mux.HandleFunc("/hello", helloHandler)
 
 	fmt.Println("Listeniing on :8090")
 	err := http.ListenAndServe(":8090", mux)
