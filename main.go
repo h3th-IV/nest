@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/h3th-IV/nest/databses"
+	"github.com/joho/godotenv"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +27,11 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	fmt.Fprintf(w, "Hello %v,\n Welcome to hello page", name)
+
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	dB, err := databses.InitDB(conStr)
 	if err != nil {
 		log.Fatal(err)
