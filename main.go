@@ -49,6 +49,7 @@ func main() {
 	mux.HandleFunc("/form", formHandler)
 	mux.HandleFunc("/", homeHandler)
 
+	fmt.Println("Listeniing on :8090")
 	err = http.ListenAndServe("0.0.0.0:8090", mux)
 	if err != nil {
 		panic(err)
