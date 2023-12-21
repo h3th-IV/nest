@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/h3th-IV/nest/databses"
 	"github.com/joho/godotenv"
 )
@@ -44,6 +45,12 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func userHandler(w http.ResponseWriter, r *http.Request) {
+	Var := mux.Vars(r)
+	userID := Var["id"]
+	fmt.Fprintf(w, "Welcome user: %v", userID)
+}
+
 func main() {
 	//intialize the get request to host
 	// resp, err := http.Get("https://github.com/jim-nnamdi?tab=repositories")
@@ -66,15 +73,22 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./static"))
 	//now the server
 	//create new ServeMultiplexer
-	mux := http.NewServeMux()
+	// router := http.NewServeMux()
+
+	//create a new router
+	router := mux.NewRouter()
 
 	//the new mux is used to route requst
-	mux.Handle("/", fileServer)
-	mux.HandleFunc("/form", formHandler)
-	mux.HandleFunc("/hello", helloHandler)
+	router.Handle("/", fileServer)
+	router.HandleFunc("/form", formHandler)
+	router.HandleFunc("/hello", helloHandler)
+
+	//route parameters used to capture dynamic values from incomin request
+	//this is done with mux.Vars
+	router.HandleFunc("/user/{id:[0-9]+}", userHandler)
 
 	fmt.Println("Listening on :8090")
-	err := http.ListenAndServe(":8090", mux)
+	err := http.ListenAndServe(":8090", router)
 	if err != nil {
 		panic(err)
 	}
