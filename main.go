@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/h3th-IV/nest/databses"
 	"github.com/joho/godotenv"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to Our Home Page")
+	fmt.Fprintf(w, "Welcome to Our Hello Page")
 }
 
-var conStr string = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disabale", os.Getenv("SQL_HOST"), os.Getenv("SQL_PORT"), os.Getenv("SQL_NAME"), os.Getenv("SQL_PASSWORD"), os.Getenv("SQL_DBNAME"))
+// constring for mySQL looks like this
+//user:password@tcp(host:port)/dbname
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -26,17 +26,22 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	password := r.FormValue("password")
 
-	fmt.Fprintf(w, "Hello %v,\n Welcome to hello page", name)
+	fmt.Fprintf(w, "Hello %v,\n Welcome to form page", name)
 
 	err = godotenv.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
-	dB, err := databses.InitDB(conStr)
+	dB, err := databses.InitDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	dB.Query(`INSERT INTO users(name, password) VALUES($1, $2)`, name, password)
+	//use prepatred statement
+	query := `INSERT INTO users(username, password) VALUES(?, ?)`
+	_, err = dB.Query(query, name, password)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -68,7 +73,7 @@ func main() {
 	mux.HandleFunc("/form", formHandler)
 	mux.HandleFunc("/hello", helloHandler)
 
-	fmt.Println("Listeniing on :8090")
+	fmt.Println("Listening on :8090")
 	err := http.ListenAndServe(":8090", mux)
 	if err != nil {
 		panic(err)
