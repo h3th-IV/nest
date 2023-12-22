@@ -51,7 +51,7 @@ func main() {
 	userRouter := router.PathPrefix("/users").Subrouter()
 	userRouter.HandleFunc("/", userHandler).Methods("GET")
 	userRouter.HandleFunc("/profile", userProfileHandler).Methods("GET")
-	userRouter.HandleFunc("/{id:[0-9]+}", singleUserHandler).Methods("GET")
+	userRouter.HandleFunc("/{username:[a-zA-z0-9]+}", singleUserHandler).Methods("GET")
 
 	domainRouter := router.PathPrefix("/domains").Subrouter()
 	domainRouter.HandleFunc("/", domainHandler).Methods("GET")
@@ -70,7 +70,7 @@ func userProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 func singleUserHandler(w http.ResponseWriter, r *http.Request) {
 	Var := mux.Vars(r)
-	userID := Var["id"]
+	userID := Var["username"]
 	fmt.Fprintf(w, "Welcome user: %v", userID)
 }
 
