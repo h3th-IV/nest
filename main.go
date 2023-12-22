@@ -38,14 +38,24 @@ func main() {
 	router := mux.NewRouter()
 
 	//the new mux is used to route requst
-	router.Handle("/", fileServer)
-	router.HandleFunc("/form", formHandler)
+	router.Handle("/", fileServer).Methods("GET") //we can use the Methods method to add HTTP method consraints.
+	router.HandleFunc("/form", formHandler).Methods("")
 	router.HandleFunc("/hello", helloHandler)
 
 	//route parameters used to capture dynamic values from incomin request
 	//this is done with mux.Vars
-	router.HandleFunc("/user/{id:[0-9]+}", userHandler)
-	router.HandleFunc("/topics/{category}/{id:[0-9]+}", topicHandler)
+	// router.HandleFunc("/user/{id:[0-9]+}", userHandler)
+	// router.HandleFunc("/topics/{category}/{id:[0-9]+}", domainHandler)
+
+	//subrouters are used to organise and group related routes under a common url
+	userRouter := router.PathPrefix("/users").Subrouter()
+	userRouter.HandleFunc("/", userHandler).Methods("GET")
+	userRouter.HandleFunc("/profile", userProfileHandler).Methods("GET")
+	userRouter.HandleFunc("/{id:[0-9]+}", singleUserHandler).Methods("GET")
+
+	domainRouter := router.PathPrefix("/domains").Subrouter()
+	domainRouter.HandleFunc("/", domainHandler).Methods("GET")
+	domainRouter.HandleFunc("/{category:[a-zA-z0-9]+}/{topic:[a-zA-z0-9]+}", domainTopicHandler).Methods("GET")
 
 	fmt.Println("Listening on :8090")
 	err := http.ListenAndServe(":8090", router)
@@ -54,12 +64,26 @@ func main() {
 	}
 }
 
-func topicHandler(w http.ResponseWriter, r *http.Request) {
+func userProfileHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Welcome to your profile page")
+}
+
+func singleUserHandler(w http.ResponseWriter, r *http.Request) {
+	Var := mux.Vars(r)
+	userID := Var["id"]
+	fmt.Fprintf(w, "Welcome user: %v", userID)
+}
+
+func domainHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Welcome to our domain page\n- Cyber Security\n- Systems Backend Engineering")
+}
+
+func domainTopicHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	category := vars["category"]
-	topicID := vars["id"]
+	topic := vars["topic"]
 
-	fmt.Fprintf(w, "Welcome to the %v page, you are under %v ", category, topicID)
+	fmt.Fprintf(w, "Welcome to the %v page, you will learn the concept of %v ", category, topic)
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +122,5 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
-	Var := mux.Vars(r)
-	userID := Var["id"]
-	fmt.Fprintf(w, "Welcome user: %v", userID)
+	fmt.Fprintf(w, "welcome new user")
 }
