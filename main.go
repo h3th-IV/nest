@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/nest/databses"
@@ -72,7 +73,14 @@ func main() {
 	// })
 
 	fmt.Println("Listening on :8090")
-	err := http.ListenAndServe(":8090", router)
+	server := &http.Server{
+		Handler:           router,
+		Addr:              "127.0.0.1;8090",
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
+	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
 	}
