@@ -37,6 +37,7 @@ func main() {
 
 	//create a new router
 	router := mux.NewRouter()
+	//middleware
 	router.Use(loggingMiddleware)
 
 	//create file sever with mux
@@ -59,6 +60,16 @@ func main() {
 	domainRouter := router.PathPrefix("/domains").Subrouter()
 	domainRouter.HandleFunc("/", domainHandler).Methods("GET")
 	domainRouter.HandleFunc("/{category:[a-zA-z0-9]+}/{topic:[a-zA-z0-9]+}", domainTopicHandler).Methods("GET")
+	//we could also match with funtions
+
+	accountRouter := router.PathPrefix("/accounts").Subrouter()
+	accountRouter.HandleFunc("/logger", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "This is just a logger page")
+	}).Methods("GET")
+
+	// accountRouter.MatcherFunc(func(r *http.Request, rm *mux.RouteMatch) bool {
+	// 	return r.ProtoMinor == 0
+	// })
 
 	fmt.Println("Listening on :8090")
 	err := http.ListenAndServe(":8090", router)
