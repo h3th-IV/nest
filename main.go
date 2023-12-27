@@ -44,38 +44,65 @@ func main() {
 	//create file sever with mux
 	// router.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
 	//the new mux is used to route requst
-	router.Handle("/", fileServer).Methods("GET") //we can use the Methods method to add HTTP method consraints.
-	router.HandleFunc("/form", formHandler).Methods("")
+	router.Handle("/", fileServer) //we can use the Methods method to add HTTP method consraints.
+	router.HandleFunc("/form", formHandler)
 	router.HandleFunc("/hello", helloHandler)
 
-	//route parameters used to capture dynamic values from incomin request
-	//this is done with mux.Vars
-	//subrouters are used to organise and group related routes under a common url
+	// route parameters used to capture dynamic values from incomin request
+	// this is done with mux.Vars
+	// subrouters are used to organise and group related routes under a common url
 
 	userRouter := router.PathPrefix("/login").Subrouter()
 	userRouter.HandleFunc("/", userHandler).Methods("GET")
-	userRouter.HandleFunc("/account/{password}", loginHAndler)
-	userRouter.HandleFunc("/profile", userProfileHandler).Methods("GET")
-	userRouter.HandleFunc("/{username:[a-zA-z0-9!@#$%^&*()-_+]+}", singleUserHandler).Methods("GET")
+	userRouter.HandleFunc("/account/{password}", loginHAndler).Name("userAccount")
+	userRouter.HandleFunc("/profile", userProfileHandler).Methods("GET").Name("userProfile")
+	userRouter.HandleFunc("/{username:[a-zA-z0-9!@#$%^&*()-_+]+}", singleUserHandler).Name("username")
+
+	//some kinda
+	userRouter.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		routeName := route.GetName()
+		fmt.Println(routeName)
+
+		pathRegxp, err := route.GetPathRegexp()
+		if err == nil {
+			fmt.Println("Path Regexp: ", pathRegxp)
+		}
+		hosTemplate, err := route.GetHostTemplate()
+		if err == nil {
+			fmt.Println(hosTemplate)
+		}
+		methods, err := route.GetMethods()
+		if err == nil {
+			fmt.Println("route Methods include: ", methods)
+		}
+		variables, err := route.GetVarNames()
+		if err == nil {
+			fmt.Println("route variable include: ", variables)
+		}
+
+		fmt.Print("\n\n")
+		return nil
+	})
 
 	domainRouter := router.PathPrefix("/domains").Subrouter()
 	domainRouter.HandleFunc("/", domainHandler).Methods("GET")
-	domainRouter.HandleFunc("/{category:[a-zA-z0-9]+}/{topic:[a-zA-z0-9]+}", domainTopicHandler).Methods("GET")
-	//we could also match with funtions
+	domainRouter.HandleFunc("/{category:[a-zA-z0-9]+}/{topic:[a-zA-z0-9]+}", domainTopicHandler).Methods("GET").Name("domains") //this uses named route
+	// url, err := domainRouter.Get("domains").URL("category", "cyber Security", "topic", "Malwares")
 
+	//we could also match with funtions
 	accountRouter := router.PathPrefix("/accounts").Subrouter()
 	accountRouter.HandleFunc("/logger", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "This is just a logger page")
 	}).Methods("GET")
 
-	// accountRouter.MatcherFunc(func(r *http.Request, rm *mux.RouteMatch) bool {
-	// 	return r.ProtoMinor == 0
-	// })
+	accountRouter.MatcherFunc(func(r *http.Request, rm *mux.RouteMatch) bool {
+		return r.ProtoMinor == 0
+	})
 
 	fmt.Println("Listening on :8090")
 	server := &http.Server{
 		Handler:           router,
-		Addr:              "127.0.0.1;8090",
+		Addr:              "127.0.0.1:8090",
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      10 * time.Second,
@@ -127,10 +154,11 @@ func loginHAndler(w http.ResponseWriter, r *http.Request) {
 
 // middleware
 func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Request URL: %s\n", r.URL)
+	logger := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("url visited: ", r.URL, r.Method)
 		next.ServeHTTP(w, r)
 	})
+	return logger
 }
 
 func userProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +208,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	dB, err := databses.InitDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Database connection error", err)
 	}
 	defer databses.Close()
 	//use prepatred statement
