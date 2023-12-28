@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/h3th-IV/nest/databses"
+	"github.com/h3th-IV/nest/database"
 	"github.com/joho/godotenv"
 )
 
@@ -31,7 +31,6 @@ func main() {
 	// }
 
 	//serve static files
-	fileServer := http.FileServer(http.Dir("./static"))
 	//now the server
 	//create new ServeMultiplexer(or better put router)
 	// router := http.NewServeMux()
@@ -42,9 +41,11 @@ func main() {
 	router.Use(loggingMiddleware)
 
 	//create file sever with mux
-	// router.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
-	//the new mux is used to route requst
-	router.Handle("/", fileServer) //we can use the Methods method to add HTTP method consraints.
+	router.PathPrefix("/static").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	})
+
 	router.HandleFunc("/form", formHandler)
 	router.HandleFunc("/hello", helloHandler)
 
@@ -99,10 +100,10 @@ func main() {
 		return r.ProtoMinor == 0
 	})
 
-	fmt.Println("Listening on :8090")
+	fmt.Println("Listening on :5500")
 	server := &http.Server{
 		Handler:           router,
-		Addr:              "127.0.0.1:8090",
+		Addr:              "127.0.0.1:5500",
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      10 * time.Second,
@@ -126,11 +127,11 @@ func loginHAndler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	dB, err := databses.InitDB()
+	dB, err := database.InitDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer databses.Close()
+	defer dB.Close()
 
 	query := `SELECT username FROM users WHERE password = ?`
 	stmt, err := dB.Prepare(query)
@@ -206,11 +207,11 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dB, err := databses.InitDB()
+	dB, err := database.InitDB()
 	if err != nil {
-		log.Fatal("Database connection error", err)
+		log.Fatal(err)
 	}
-	defer databses.Close()
+	defer dB.Close()
 	//use prepatred statement
 	query := `INSERT INTO users(username, password) VALUES(?, ?)`
 	_, err = dB.Query(query, name, password)
